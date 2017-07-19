@@ -26,9 +26,9 @@ function createWindow () {
 	});
 	
 	authWindow.webContents.on('will-navigate', function (event, newUrl) {
-		event.preventDefault();
-		
 		if(newUrl.includes("?id=") && newUrl.includes("&token=")) {
+			event.preventDefault();
+			
 			var id = newUrl.split('?')[1].split('&')[0].split('=')[1];
 			var token = newUrl.split('?')[1].split('&')[1].split('=')[1];
 			var remember = newUrl.split('?')[1].split('&')[2].split('=')[1];
