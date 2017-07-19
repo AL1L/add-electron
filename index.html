@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Artex Development Dashboard</title>
+		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+		<link href="assets/css/add.css" rel="stylesheet">
+	</head>
+	<body>
+		<div class="window-bar">
+			<ul class="menu">
+				<div class="functions">
+					<li><a class="brand"><img src="assets/img/favicon.ico"></a></li>
+					<li><a href="https://github.com/mathhulk/artex-development-dashboard">Contribute</a></li>
+					<li><a href="https://github.com/artexdevelopment">GitHub</a></li>
+					<li class="divider"></li>
+					<li><a class="getAnnouncements">Announcements</a></li>
+					<li><a class="getAlerts">Alerts</a></li>
+					<li class="divider"></li>
+					<li><a class="authOut">Logout</a></li>
+				</div>
+				<div class="controls">
+					<li><a class="closeWindow"><i class="fa fa-times"></i></a></li>
+					<li><a class="maximizeWindow"><i class="fa fa-window-maximize"></i></a></li>
+					<li><a class="minimizeWindow"><i class="fa fa-window-minimize"></i></a></li>
+				</div>
+			</ul>
+		</div>
+		<div class="main">
+			<div class="card">
+				You are currently logged in as <b><span class="username"></span></b> (<span class="role"></span>).
+			</div>
+			<div class="content text-center">
+				<table>
+					<thead>
+						<!-- INSERT HEAD -->
+					</thead>
+					<tbody>
+						<!-- INSERT BODY -->
+					</tbody>
+				</table>
+				<div class="pagination">
+					<!-- INSERT PAGINATION -->
+				</div>
+			</div>
+		</div>
+		<script>if(typeof module === 'object') {window.module = module; module = undefined;}</script>
+		<script src="assets/js/jquery-3.2.1.min.js" type="text/javascript"></script>
+		<script src="assets/js/add.js" type="text/javascript"></script>
+		<script>if(window.module) module = window.module;</script>
+	</body>
+</html>

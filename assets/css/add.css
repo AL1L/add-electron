@@ -1,0 +1,186 @@
+body {
+	font-family: 'Roboto', sans-serif;
+	padding: 0;
+	margin: 0;
+}
+
+/*
+ *	HELPERS
+ */
+.text-right {
+	text-align: right;
+}
+.text-center {
+	text-align: center;
+}
+.text-left {
+	text-align: left;
+}
+
+/*
+ *	ALERTS
+ */
+.new {
+	color: #ff4c4c;
+}
+.title {
+	text-transform: uppercase;
+	font-weight: bold;
+}
+ 
+/*
+ *	MAIN
+ */
+.main {
+	padding: 75px 10% 50px 10%;
+}
+.card {
+	padding: 10px;
+	font-size: 12px;
+	background: rgba(0, 0, 0, 0.3);
+	color: #e0e0e0;
+}
+
+/* 
+ *	WINDOW-BAR
+ */
+.window-bar ul.menu {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+	position: fixed;
+	width: 100%;
+    overflow: hidden;
+	background: #0d0d0d;
+	-webkit-app-region: drag;
+}
+.window-bar ul.menu li a {
+	-webkit-app-region: no-drag;
+}
+
+/* 
+ *	WINDOW-BAR FUNCTIONS
+ */
+.window-bar ul.menu .functions li {
+    float: left;
+    padding: 5px;
+}
+.window-bar ul.menu .functions li.divider {
+	padding: 7px;
+	color: #fff;
+}
+.window-bar ul.menu .functions li.divider:before {
+	content: "/";
+}
+.window-bar ul.menu .functions li a {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+	cursor: pointer;
+}
+.window-bar ul.menu .functions li a:not(.brand) {
+	color: #fff;
+	padding: 5px;
+	text-transform: uppercase;
+	font-weight: bold;
+	border-radius: 5px;
+	font-size: 12px;
+}
+.window-bar ul.menu .functions li a.brand {
+	padding: 3px 3px 0 3px;
+}
+.window-bar ul.menu .functions li a:hover:not(.brand) {
+	background: #070707;
+}
+
+/* 
+ *	WINDOW-BAR CONTROLS
+ */
+.window-bar ul.menu .controls li {
+    float: right;
+}
+.window-bar ul.menu .controls li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 10px 15px;
+	font-size: 12px;
+    text-decoration: none;
+	cursor: pointer;
+}
+.window-bar ul.menu .controls li a:hover {
+	background: #070707;
+}
+
+/*
+ *	SCROLL-BAR
+ */
+.announcements::-webkit-scrollbar {
+	height: 7px;
+}
+::-webkit-scrollbar {
+	width: 8px;
+}
+::-webkit-scrollbar-thumb {
+	border-radius: 5px;
+	background: #050505;
+}
+::-webkit-scrollbar-track {
+	background: #141414;
+}
+
+/*
+ *	TABLE
+ */
+table {
+	border-collapse: collapse;
+	width: 100%;
+	font-size: 12px;
+	margin: 20px 0;
+}
+th, td {
+	text-align: left;
+	padding: 10px;
+}
+tbody td {
+	background: rgba(0, 0, 0, 0.1);
+	color: #e0e0e0;
+}
+tbody td a {
+	text-decoration: none;
+	color: #4c4cff;
+}
+thead th {
+	background: rgba(0, 0, 0, 0.3);
+	color: #fff;
+}
+
+/*
+ *	SECTIONS
+ */
+.content {
+	overflow-x: auto; 
+}
+
+/*
+ *	PAGINATION
+ */
+.pagination {
+	color: #fff;
+	font-size: 12px;
+    display: inline-block;
+}
+.pagination a {
+    float: left;
+    padding: 8px 12px;
+    text-decoration: none;
+	margin: 0 3px;
+	background: #0d0d0d;
+	cursor: pointer;
+}
+.pagination a.active {
+    background: #050505;
+}
+.pagination a:hover:not(.active) {
+	background: #141414;
+}
