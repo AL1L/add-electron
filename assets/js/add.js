@@ -32,14 +32,14 @@ function authCheck() {
 					storage.clear(function(error) {
 						if (error) throw error;
 					});
-					app.remote.getCurrentWindow().loadURL('https://www.theartex.net/system/login/?red=/' + __dirname + '/index.html&prot=file');
+					app.remote.getCurrentWindow().loadURL('https://www.theartex.net/system/login/?red=file:///' + __dirname + '/index.html');
 				}
 			});
 		} else {
 			storage.clear(function(error) {
 				if (error) throw error;
 			});
-			app.remote.getCurrentWindow().loadURL('https://www.theartex.net/system/login/?red=/' + __dirname + '/index.html&prot=file');
+			app.remote.getCurrentWindow().loadURL('https://www.theartex.net/system/login/?red=file:///' + __dirname + '/index.html');
 		}
 	});
 	
@@ -109,7 +109,7 @@ $(".authOut").click(function() {
 	storage.clear(function(error) {
 		if (error) throw error;
 	});
-	app.remote.getCurrentWindow().loadURL('https://www.theartex.net/system/login/?red=/' + __dirname + '/index.html&prot=file');
+	app.remote.getCurrentWindow().loadURL('https://www.theartex.net/system/login/?red=file:///' + __dirname + '/index.html');
 });
 
 $(document).on('click', 'a[href^="http"]', function(event) {

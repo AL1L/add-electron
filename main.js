@@ -21,7 +21,7 @@ function createWindow () {
 			storage.clear(function(error) {
 				if (error) throw error;
 			});
-			authWindow.loadURL('https://www.theartex.net/system/login/?red=/' + __dirname + '/index.html&prot=file');
+			authWindow.loadURL('https://www.theartex.net/system/login/?red=file:///' + __dirname + '/index.html');
 		}
 	});
 	
@@ -43,7 +43,7 @@ function createWindow () {
 					slashes: true
 				}));
 			} else {
-				authWindow.loadURL('https://www.theartex.net/system/login/?red=/' + __dirname + '/index.html&prot=file');
+				authWindow.loadURL('https://www.theartex.net/system/login/?red=file:///' + __dirname + '/index.html');
 			}
 		}
 	});
