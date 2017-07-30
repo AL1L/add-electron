@@ -25,8 +25,43 @@ function authCheck() {
 					$.each(response.body.data, function(key, value) {
 						$("." + key).text(value);
 					});
-					storage.set('user', {username: response.body.data.username, role: response.body.data.role, email: response.body.data.email, gravatar: response.body.data.gravatar, key: response.body.data.key, page: response.body.data.page, last_seen: response.body.data.last_seen}, function(error) {
+					
+					storage.set('user', {username: response.body.data.username, role: response.body.data.role, email: response.body.data.email, gravatar: response.body.data.gravatar, page: response.body.data.page, last_seen: response.body.data.last_seen}, function(error) {
 						if (error) throw error;
+					});
+					
+					request({
+						url: "https://www.theartex.net/cloud/api/",
+						method: "POST",
+						json: true,
+						body: {sec: "alerts", id: data.id, token: data.token}
+					}, function (error, response, body) {
+						if (error) throw error;
+						
+						if(response.body.status == "success") {
+							var message;
+							
+							$.each(response.body.data, function(key, value) {
+								if(value.status == "new") {
+									message = value.message;
+									
+									if(message.length > 200) {
+										message = message.substr(0, 197) + "...";
+									}
+									
+									let myNotification = new Notification(value.title, {body: message})
+									
+									request({
+										url: "https://www.theartex.net/cloud/api/",
+										method: "POST",
+										json: true,
+										body: {sec: "status", alert: value.id, status: "idle", id: data.id, token: data.token}
+									}, function (error) {
+										if (error) throw error;
+									});
+								}
+							});
+						}
 					});
 				} else {
 					storage.clear(function(error) {
@@ -41,44 +76,6 @@ function authCheck() {
 			});
 			app.remote.getCurrentWindow().loadURL('https://www.theartex.net/system/login/?red=file:///' + __dirname + '/index.html');
 		}
-	});
-	
-	storage.get('user', function(error, data) {
-		if (error) throw error;
-		
-		request({
-			url: "https://www.theartex.net/cloud/api/",
-			method: "POST",
-			json: true,
-			body: {sec: "alerts", key: data.key}
-		}, function (error, response, body) {
-			if (error) throw error;
-			
-			if(response.body.status == "success") {
-				var message;
-				
-				$.each(response.body.data, function(key, value) {
-					if(value.status == "new") {
-						message = value.message;
-						
-						if(message.length > 200) {
-							message = message.substr(0, 197) + "...";
-						}
-						
-						let myNotification = new Notification(value.title, {body: message})
-						
-						request({
-							url: "https://www.theartex.net/cloud/api/",
-							method: "POST",
-							json: true,
-							body: {sec: "status", id: value.id, status: "idle", key: data.key}
-						}, function (error) {
-							if (error) throw error;
-						});
-					}
-				});
-			}
-		});
 	});
 }
 
@@ -230,14 +227,14 @@ function getAlerts(page = 1, multiple = 10) {
 	var page = {min: (page - 1) * multiple, max: page * multiple, count: 0, posts: 0, number: page};
 	var pages = {};
 	
-	storage.get('user', function(error, data) {
+	storage.get('auth', function(error, data) {
 		if(error) throw error;
 		
 		request({
 			url: "https://www.theartex.net/cloud/api/",
 			method: "POST",
 			json: true,
-			body: {sec: "alerts", key: data.key}
+			body: {sec: "alerts", id: data.id, token: data.token}
 		}, function (error, response, body) {
 			if (error) throw error;
 			
@@ -257,7 +254,7 @@ function getAlerts(page = 1, multiple = 10) {
 							url: "https://www.theartex.net/cloud/api/",
 							method: "POST",
 							json: true,
-							body: {sec: "status", id: value.id, status: "old", key: data.key}
+							body: {sec: "status", alert: value.id, status: "old", id: data.id, token: data.token}
 						}, function (error) {
 							if (error) throw error;
 						});
