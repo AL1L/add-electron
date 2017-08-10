@@ -16,7 +16,7 @@
     "request": "^2.81.0"
   },
   "build": {
-    "appId": "net.theartex.artex-development-dashboard",
+    "appId": "info.mathhulk.artex-development-dashboard",
     "productName": "Artex Development Dashboard"
   },
   "scripts": {
