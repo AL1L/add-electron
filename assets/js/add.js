@@ -34,6 +34,15 @@ function authCheck() {
 						url: "https://www.theartex.net/cloud/api/",
 						method: "POST",
 						json: true,
+						body: {sec: "session", application: "Artex Development Dashboard (Electron)", id: data.id, token: data.token}
+					}, function (error) {
+						if (error) throw error;
+					});
+					
+					request({
+						url: "https://www.theartex.net/cloud/api/",
+						method: "POST",
+						json: true,
 						body: {sec: "alerts", id: data.id, token: data.token}
 					}, function (error, response, body) {
 						if (error) throw error;
@@ -67,14 +76,14 @@ function authCheck() {
 					storage.clear(function(error) {
 						if (error) throw error;
 					});
-					app.remote.getCurrentWindow().loadURL('https://www.theartex.net/system/login/?red=file:///' + __dirname + '/index.html');
+					app.remote.getCurrentWindow().loadURL('https://www.theartex.net/system/login/?red=http://localhost/add-electron');
 				}
 			});
 		} else {
 			storage.clear(function(error) {
 				if (error) throw error;
 			});
-			app.remote.getCurrentWindow().loadURL('https://www.theartex.net/system/login/?red=file:///' + __dirname + '/index.html');
+			app.remote.getCurrentWindow().loadURL('https://www.theartex.net/system/login/?red=http://localhost/add-electron');
 		}
 	});
 }
@@ -106,7 +115,7 @@ $(".authOut").click(function() {
 	storage.clear(function(error) {
 		if (error) throw error;
 	});
-	app.remote.getCurrentWindow().loadURL('https://www.theartex.net/system/login/?red=file:///' + __dirname + '/index.html');
+	app.remote.getCurrentWindow().loadURL('https://www.theartex.net/system/login/?red=http://localhost/add-electron');
 });
 
 $(document).on('click', 'a[href^="http"]', function(event) {
