@@ -6,76 +6,119 @@ const request = require("request");
 const dateFormat = require("dateformat");
 
 /*
+ *	IPC
+ */
+const {BrowserWindow} = require("electron").remote;
+
+/*
  *	FUNCTIONS
  */
-function authCheck() {
-	storage.get("auth", function(error, data) {
-		if (error) throw error;
-		if(data.token && data.id) {
-			request({
-				url: "https://www.theartex.net/cloud/api/user",
-				method: "POST",
-				json: true,
-				body: {sec: "validate", id: data.id, token: data.token}
-			}, function (error, response, body) {
-				if (error) throw error;
-				if(response.body.status == "success") {
-					$.each(response.body.data, function(key, value) {
-						$("." + key).text(value);
-					});
-					storage.set("user", {username: response.body.data.username, role: response.body.data.role, email: response.body.data.email, gravatar: response.body.data.gravatar, page: response.body.data.page, last_seen: response.body.data.last_seen}, function(error) {
-						if (error) throw error;
-					});
-					request({
-						url: "https://www.theartex.net/cloud/api/user",
-						method: "POST",
-						json: true,
-						body: {sec: "session", application: "Artex Development Dashboard (Electron)", id: data.id, token: data.token}
-					}, function (error) {
-						if (error) throw error;
-					});
-					request({
-						url: "https://www.theartex.net/cloud/api/alerts",
-						method: "POST",
-						json: true,
-						body: {sec: "list", id: data.id, token: data.token}
-					}, function (error, response, body) {
-						if (error) throw error;
-						if(response.body.status == "success") {
-							var message;
-							$.each(response.body.data, function(key, value) {
-								if(value.status == "new") {
-									message = value.message;
-									if(message.length > 200) {
-										message = message.substr(0, 197) + "...";
-									}
-									let myNotification = new Notification(value.title, {body: message})
-									request({
-										url: "https://www.theartex.net/cloud/api/alerts",
-										method: "POST",
-										json: true,
-										body: {sec: "status", alert: value.id, status: "idle", id: data.id, token: data.token}
-									}, function (error) {
-										if (error) throw error;
-									});
-								}
-							});
-						}
-					});
-				} else {
-					storage.clear(function(error) {
-						if (error) throw error;
-					});
-					app.remote.getCurrentWindow().loadURL("https://www.theartex.net/system/login/?red=http://localhost/add-electron");
-				}
-			});
-		} else {
-			storage.clear(function(error) {
-				if (error) throw error;
-			});
-			app.remote.getCurrentWindow().loadURL("https://www.theartex.net/system/login/?red=http://localhost/add-electron");
+function authOut() {
+	auth = false;
+	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
+	authWindow.setMenu(null);
+	authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost/add-electron");
+	authWindow.once("ready-to-show", () => {
+		authWindow.show();
+		app.remote.getCurrentWindow().hide();
+	});
+	authWindow.on("closed", () => {
+		authWindow = null;
+	});
+	authWindow.webContents.on("will-navigate", function (event, newUrl) {
+		if(newUrl.includes("?id=") && newUrl.includes("&token=")) {
+			event.preventDefault();
+			if(newUrl.split("?")[1].split("&")[0].split("=")[1] && newUrl.split("?")[1].split("&")[1].split("=")[1] && newUrl.split("?")[1].split("&")[2].split("=")[1]) {
+				storage.set("auth", {id: newUrl.split("?")[1].split("&")[0].split("=")[1], token: newUrl.split("?")[1].split("&")[1].split("=")[1], remember: newUrl.split("?")[1].split("&")[2].split("=")[1]}, function(error) {
+					if (error) throw error;
+				});
+				appWindow = new BrowserWindow({width: 800, height: 600, frame: false, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
+				appWindow.loadURL(url.format({
+					pathname: path.join(__dirname, "index.html"),
+					protocol: "file:",
+					slashes: true
+				}));
+				appWindow.once("ready-to-show", () => {
+					appWindow.show();
+					authWindow.close();
+					app.remote.getCurrentWindow().close();
+				});
+			} else {
+				authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost/add-electron");
+			}
 		}
 	});
+}
+function authCheck() {
+	if(auth == true) {
+		storage.get("auth", function(error, data) {
+			if (error) throw error;
+			if(data.token && data.id) {
+				request({
+					url: "https://www.theartex.net/cloud/api/user",
+					method: "POST",
+					json: true,
+					body: {sec: "validate", id: data.id, token: data.token}
+				}, function (error, response, body) {
+					if (error) throw error;
+					if(response.body.status == "success") {
+						$.each(response.body.data, function(key, value) {
+							$("." + key).text(value);
+						});
+						storage.set("user", {username: response.body.data.username, role: response.body.data.role, email: response.body.data.email, gravatar: response.body.data.gravatar, page: response.body.data.page, last_seen: response.body.data.last_seen}, function(error) {
+							if (error) throw error;
+						});
+						request({
+							url: "https://www.theartex.net/cloud/api/user",
+							method: "POST",
+							json: true,
+							body: {sec: "session", application: "Artex Development Dashboard (Electron)", id: data.id, token: data.token}
+						}, function (error) {
+							if (error) throw error;
+						});
+						request({
+							url: "https://www.theartex.net/cloud/api/alerts",
+							method: "POST",
+							json: true,
+							body: {sec: "list", id: data.id, token: data.token}
+						}, function (error, response, body) {
+							if (error) throw error;
+							if(response.body.status == "success") {
+								var message;
+								$.each(response.body.data, function(key, value) {
+									if(value.status == "new") {
+										message = value.message;
+										if(message.length > 200) {
+											message = message.substr(0, 197) + "...";
+										}
+										let myNotification = new Notification(value.title, {body: message})
+										request({
+											url: "https://www.theartex.net/cloud/api/alerts",
+											method: "POST",
+											json: true,
+											body: {sec: "status", alert: value.id, status: "idle", id: data.id, token: data.token}
+										}, function (error) {
+											if (error) throw error;
+										});
+									}
+								});
+							}
+						});
+					} else {
+						storage.clear(function(error) {
+							if (error) throw error;
+						});
+						authOut();
+					}
+				});
+			} else {
+				storage.clear(function(error) {
+					if (error) throw error;
+				});
+				authOut();
+			}
+		});
+	}
 }
 function getAnnouncements(page = 1, multiple = 10) {
 	$(".content").attr("data-page", "announcements");
@@ -145,6 +188,7 @@ function getAnnouncements(page = 1, multiple = 10) {
 	});
 }
 function getAlerts(page = 1, multiple = 10) {
+	if(status == true)
 	$(".content").attr("data-page", "alerts");
 	$(".pagination").empty();
 	$("tbody").empty();
@@ -247,7 +291,7 @@ $(".authOut").click(function() {
 	storage.clear(function(error) {
 		if (error) throw error;
 	});
-	app.remote.getCurrentWindow().loadURL("https://www.theartex.net/system/login/?red=http://localhost/add-electron");
+	authOut();
 });
 $(document).on("click", "a[href^=\"http\"]", function(event) {
     event.preventDefault();
@@ -264,6 +308,8 @@ $(".pagination").on("click", "a", function() {
 /*
  *	LOAD
  */
+var auth = true;
+ 
 getAnnouncements();
 authCheck();
 setInterval(authCheck, 2500);
