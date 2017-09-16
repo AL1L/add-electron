@@ -11,6 +11,11 @@ const dateFormat = require("dateformat");
 const {BrowserWindow} = require("electron").remote;
 
 /*
+ *	VARIABLES
+ */
+let auth = true;
+
+/*
  *	FUNCTIONS
  */
 function authOut() {
@@ -122,13 +127,13 @@ function authCheck() {
 }
 function getAnnouncements(page = 1, multiple = 10) {
 	$(".content").attr("data-page", "announcements");
-	$(".pagination").empty();
-	$("tbody").empty();
-	$("thead").empty();
-	$("thead").append("<tr><th>Announcement</th><th class=\"text-right\">Date</th></tr>");
-	$("tbody").append("<tr><td>Loading announcements...</td><td class=\"text-right\">---</td></tr>");
-	var page = {min: (page - 1) * multiple, max: page * multiple, count: 0, posts: 0, number: page};
-	var pages = {};
+	$(".pagination").empty(),
+		$("tbody").empty(),
+		$("thead").empty();
+	$("thead").append("<tr><th>Announcement</th><th class=\"text-right\">Date</th></tr>"),
+		$("tbody").append("<tr><td>Loading announcements...</td><td class=\"text-right\">---</td></tr>");
+	var page = {min: (page - 1) * multiple, max: page * multiple, count: 0, posts: 0, number: page},
+		pages = {};
 	request({
 		url: "https://www.theartex.net/cloud/api/",
 		method: "POST",
@@ -188,15 +193,14 @@ function getAnnouncements(page = 1, multiple = 10) {
 	});
 }
 function getAlerts(page = 1, multiple = 10) {
-	if(status == true)
 	$(".content").attr("data-page", "alerts");
-	$(".pagination").empty();
-	$("tbody").empty();
-	$("thead").empty();
-	$("thead").append("<tr><th>Alert</th><th class=\"text-right\">Date</th></tr>");
-	$("tbody").append("<tr><td>Loading alerts...</td><td class=\"text-right\">---</td></tr>");
-	var page = {min: (page - 1) * multiple, max: page * multiple, count: 0, posts: 0, number: page};
-	var pages = {};
+	$(".pagination").empty(),
+		$("tbody").empty(),
+		$("thead").empty();
+	$("thead").append("<tr><th>Alert</th><th class=\"text-right\">Date</th></tr>"),
+		$("tbody").append("<tr><td>Loading alerts...</td><td class=\"text-right\">---</td></tr>");
+	var page = {min: (page - 1) * multiple, max: page * multiple, count: 0, posts: 0, number: page},
+		pages = {};
 	storage.get("auth", function(error, data) {
 		if(error) throw error;
 		request({
@@ -308,8 +312,8 @@ $(".pagination").on("click", "a", function() {
 /*
  *	LOAD
  */
-var auth = true;
- 
-getAnnouncements();
-authCheck();
-setInterval(authCheck, 2500);
+$(document).ready(function() {
+	getAnnouncements();
+	authCheck();
+	setInterval(authCheck, 2500);	
+});
