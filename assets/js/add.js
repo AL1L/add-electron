@@ -22,7 +22,7 @@ function authOut() {
 	auth = false;
 	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
 	authWindow.setMenu(null);
-	authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost/add-electron");
+	authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost:144");
 	authWindow.once("ready-to-show", () => {
 		authWindow.show();
 		app.remote.getCurrentWindow().hide();
@@ -49,7 +49,7 @@ function authOut() {
 					app.remote.getCurrentWindow().close();
 				});
 			} else {
-				authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost/add-electron");
+				authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost:144");
 			}
 		}
 	});

@@ -1,4 +1,4 @@
-const {app, BrowserWindow} = require("electron");
+const {app, BrowserWindow, shell} = require("electron");
 const path = require("path");
 const url = require("url");
 const storage = require("electron-json-storage");
@@ -34,14 +34,14 @@ function createWindow() {
 			storage.clear(function(error) {
 				if (error) throw error;
 			});
-			authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost/add-electron");
+			authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost:144");
 		}
 	});
 	
 	/*
 	 *	FUNCTION -> EVENTS
 	 */
-	authWindow.webContents.on("will-navigate", function (event, newUrl) {
+	authWindow.webContents.on("will-navigate", function(event, newUrl) {
 		if(newUrl.includes("?id=") && newUrl.includes("&token=")) {
 			event.preventDefault();
 			if(newUrl.split("?")[1].split("&")[0].split("=")[1] && newUrl.split("?")[1].split("&")[1].split("=")[1] && newUrl.split("?")[1].split("&")[2].split("=")[1]) {
@@ -62,8 +62,11 @@ function createWindow() {
 					appWindow = null;
 				});
 			} else {
-				authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost/add-electron");
+				authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost:144");
 			}
+		} else if(newUrl.startsWith("http")) {
+			event.preventDefault();
+			shell.openExternal(newUrl);
 		}
 	});
 	authWindow.once("ready-to-show", () => {
