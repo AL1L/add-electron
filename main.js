@@ -14,28 +14,30 @@ let authWindow;
 function createWindow() {
 	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
 	authWindow.setMenu(null);
-	storage.get("auth", function(error, data) {
-		if (error) throw error;
-		if(data.id && data.token && data.remember == "true") {
-			appWindow = new BrowserWindow({width: 800, height: 600, frame: false, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
-			appWindow.loadURL(url.format({
-				pathname: path.join(__dirname, "index.html"),
-				protocol: "file:",
-				slashes: true
-			}));
-			appWindow.once("ready-to-show", () => {
-				appWindow.show();
-				authWindow.close();
-			});
-			appWindow.on("closed", () => {
-				appWindow = null;
-			});
-		} else {
-			storage.clear(function(error) {
-				if (error) throw error;
-			});
-			authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost:144");
-		}
+	authWindow.webContents.session.clearCache(function() {
+		storage.get("auth", function(error, data) {
+			if (error) throw error;
+			if(data.id && data.token && data.remember == "true") {
+				appWindow = new BrowserWindow({width: 800, height: 600, frame: false, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
+				appWindow.loadURL(url.format({
+					pathname: path.join(__dirname, "index.html"),
+					protocol: "file:",
+					slashes: true
+				}));
+				appWindow.once("ready-to-show", () => {
+					appWindow.show();
+					authWindow.close();
+				});
+				appWindow.on("closed", () => {
+					appWindow = null;
+				});
+			} else {
+				storage.clear(function(error) {
+					if (error) throw error;
+				});
+				authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost:144");
+			}
+		});
 	});
 	
 	/*
@@ -64,7 +66,7 @@ function createWindow() {
 			} else {
 				authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost:144");
 			}
-		} else if(newUrl.startsWith("http")) {
+		} else if(["https://www.theartex.net/system/registration/", "https://www.theartex.net/system/reset/"].indexOf(newUrl) >= 0) {
 			event.preventDefault();
 			shell.openExternal(newUrl);
 		}
