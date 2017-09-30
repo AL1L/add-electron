@@ -35,7 +35,7 @@ function createWindow() {
 				storage.clear(function(error) {
 					if (error) throw error;
 				});
-				authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost:144");
+				authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&type=minimal");
 			}
 		});
 	});
@@ -44,7 +44,7 @@ function createWindow() {
 	 *	FUNCTION -> EVENTS
 	 */
 	authWindow.webContents.on("will-navigate", function(event, newUrl) {
-		if(newUrl.includes("?id=") && newUrl.includes("&token=")) {
+		if(newUrl.includes("?id=") && newUrl.includes("&token=") && newUrl.includes("&remember=")) {
 			event.preventDefault();
 			if(newUrl.split("?")[1].split("&")[0].split("=")[1] && newUrl.split("?")[1].split("&")[1].split("=")[1] && newUrl.split("?")[1].split("&")[2].split("=")[1]) {
 				storage.set("auth", {id: newUrl.split("?")[1].split("&")[0].split("=")[1], token: newUrl.split("?")[1].split("&")[1].split("=")[1], remember: newUrl.split("?")[1].split("&")[2].split("=")[1]}, function(error) {
@@ -64,7 +64,7 @@ function createWindow() {
 					appWindow = null;
 				});
 			} else {
-				authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost:144");
+				authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&type=minimal");
 			}
 		} else if(["https://www.theartex.net/system/registration/", "https://www.theartex.net/system/reset/"].indexOf(newUrl) >= 0) {
 			event.preventDefault();

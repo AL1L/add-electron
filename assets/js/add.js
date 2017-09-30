@@ -22,7 +22,7 @@ function authOut() {
 	auth = false;
 	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
 	authWindow.setMenu(null);
-	authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost:144");
+	authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&type=minimal");
 	authWindow.once("ready-to-show", () => {
 		authWindow.show();
 		app.remote.getCurrentWindow().hide();
@@ -31,7 +31,7 @@ function authOut() {
 		authWindow = null;
 	});
 	authWindow.webContents.on("will-navigate", function (event, newUrl) {
-		if(newUrl.includes("?id=") && newUrl.includes("&token=")) {
+		if(newUrl.includes("?id=") && newUrl.includes("&token=") && newUrl.includes("&remember=")) {
 			event.preventDefault();
 			if(newUrl.split("?")[1].split("&")[0].split("=")[1] && newUrl.split("?")[1].split("&")[1].split("=")[1] && newUrl.split("?")[1].split("&")[2].split("=")[1]) {
 				storage.set("auth", {id: newUrl.split("?")[1].split("&")[0].split("=")[1], token: newUrl.split("?")[1].split("&")[1].split("=")[1], remember: newUrl.split("?")[1].split("&")[2].split("=")[1]}, function(error) {
@@ -49,7 +49,7 @@ function authOut() {
 					app.remote.getCurrentWindow().close();
 				});
 			} else {
-				authWindow.loadURL("https://www.theartex.net/system/login/?red=http://localhost:144");
+				authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&type=minimal");
 			}
 		}
 	});
