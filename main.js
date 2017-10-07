@@ -5,6 +5,9 @@ const storage = require("electron-json-storage");
 const request = require("request");
 const dateFormat = require("dateformat");
 
+/*
+ *	VARIABLES
+ */
 let appWindow;
 let authWindow;
 
@@ -44,28 +47,24 @@ function createWindow() {
 	 *	FUNCTION -> EVENTS
 	 */
 	authWindow.webContents.on("will-navigate", function(event, newUrl) {
-		if(newUrl.includes("?id=") && newUrl.includes("&token=") && newUrl.includes("&remember=")) {
+		if(newUrl.split("?")[1].split("&")[0].split("=")[1] && newUrl.split("?")[1].split("&")[1].split("=")[1] && newUrl.split("?")[1].split("&")[2].split("=")[1]) {
 			event.preventDefault();
-			if(newUrl.split("?")[1].split("&")[0].split("=")[1] && newUrl.split("?")[1].split("&")[1].split("=")[1] && newUrl.split("?")[1].split("&")[2].split("=")[1]) {
-				storage.set("auth", {id: newUrl.split("?")[1].split("&")[0].split("=")[1], token: newUrl.split("?")[1].split("&")[1].split("=")[1], remember: newUrl.split("?")[1].split("&")[2].split("=")[1]}, function(error) {
-					if (error) throw error;
-				});
-				appWindow = new BrowserWindow({width: 800, height: 600, frame: false, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
-				appWindow.loadURL(url.format({
-					pathname: path.join(__dirname, "index.html"),
-					protocol: "file:",
-					slashes: true
-				}));
-				appWindow.once("ready-to-show", () => {
-					appWindow.show();
-					authWindow.close();
-				});
-				appWindow.on("closed", () => {
-					appWindow = null;
-				});
-			} else {
-				authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&type=minimal");
-			}
+			storage.set("auth", {id: newUrl.split("?")[1].split("&")[0].split("=")[1], token: newUrl.split("?")[1].split("&")[1].split("=")[1], remember: newUrl.split("?")[1].split("&")[2].split("=")[1]}, function(error) {
+				if (error) throw error;
+			});
+			appWindow = new BrowserWindow({width: 800, height: 600, frame: false, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
+			appWindow.loadURL(url.format({
+				pathname: path.join(__dirname, "index.html"),
+				protocol: "file:",
+				slashes: true
+			}));
+			appWindow.once("ready-to-show", () => {
+				appWindow.show();
+				authWindow.close();
+			});
+			appWindow.on("closed", () => {
+				appWindow = null;
+			});
 		} else if(["https://www.theartex.net/system/registration/", "https://www.theartex.net/system/reset/"].indexOf(newUrl) >= 0) {
 			event.preventDefault();
 			shell.openExternal(newUrl);
