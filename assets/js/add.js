@@ -22,7 +22,7 @@ function authOut() {
 	auth = false;
 	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
 	authWindow.setMenu(null);
-	authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&type=minimal");
+	authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&type=local");
 	authWindow.once("ready-to-show", () => {
 		authWindow.show();
 		app.remote.getCurrentWindow().hide();

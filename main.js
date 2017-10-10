@@ -38,7 +38,7 @@ function createWindow() {
 				storage.clear(function(error) {
 					if (error) throw error;
 				});
-				authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&type=minimal");
+				authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&type=local");
 			}
 		});
 	});
