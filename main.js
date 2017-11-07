@@ -38,7 +38,16 @@ function createWindow() {
 				storage.clear(function(error) {
 					if (error) throw error;
 				});
-				authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&type=local");
+				request({
+					url: "https://www.theartex.net/cloud/api/user/?sec=token",
+					method: "GET",
+					json: true
+				}, function (error, response, body) {
+					if (error) throw error;
+					if(response.body.status == "success") {
+						authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&minimal=true&token=" + response.body.data.token + "&id=" + response.body.data.id);
+					}
+				});
 			}
 		});
 	});
@@ -47,7 +56,7 @@ function createWindow() {
 	 *	FUNCTION -> EVENTS
 	 */
 	authWindow.webContents.on("will-navigate", function(event, newUrl) {
-		if(newUrl.split("?")[1].split("&")[0].split("=")[1] && newUrl.split("?")[1].split("&")[1].split("=")[1] && newUrl.split("?")[1].split("&")[2].split("=")[1]) {
+		if(newUrl.startsWith("https://localhost:144/") && newUrl.split("?")[1].split("&")[0].split("=")[1] && newUrl.split("?")[1].split("&")[1].split("=")[1] && newUrl.split("?")[1].split("&")[2].split("=")[1]) {
 			event.preventDefault();
 			storage.set("auth", {id: newUrl.split("?")[1].split("&")[0].split("=")[1], token: newUrl.split("?")[1].split("&")[1].split("=")[1], remember: newUrl.split("?")[1].split("&")[2].split("=")[1]}, function(error) {
 				if (error) throw error;

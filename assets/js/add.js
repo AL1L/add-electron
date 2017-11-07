@@ -22,30 +22,39 @@ function authOut() {
 	auth = false;
 	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
 	authWindow.setMenu(null);
-	authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&type=local");
-	authWindow.once("ready-to-show", () => {
-		authWindow.show();
-		app.remote.getCurrentWindow().hide();
-	});
-	authWindow.on("closed", () => {
-		authWindow = null;
-	});
-	authWindow.webContents.on("will-navigate", function (event, newUrl) {
-		if(newUrl.split("?")[1].split("&")[0].split("=")[1] && newUrl.split("?")[1].split("&")[1].split("=")[1] && newUrl.split("?")[1].split("&")[2].split("=")[1]) {
-			event.preventDefault();
-			storage.set("auth", {id: newUrl.split("?")[1].split("&")[0].split("=")[1], token: newUrl.split("?")[1].split("&")[1].split("=")[1], remember: newUrl.split("?")[1].split("&")[2].split("=")[1]}, function(error) {
-				if (error) throw error;
+	request({
+		url: "https://www.theartex.net/cloud/api/user/?sec=token",
+		method: "GET",
+		json: true
+	}, function (error, response, body) {
+		if (error) throw error;
+		if(response.body.status == "success") {
+			authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&minimal=true&token=" + response.body.data.token + "&id=" + response.body.data.id);
+			authWindow.once("ready-to-show", () => {
+				authWindow.show();
+				app.remote.getCurrentWindow().hide();
 			});
-			appWindow = new BrowserWindow({width: 800, height: 600, frame: false, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
-			appWindow.loadURL(url.format({
-				pathname: path.join(__dirname, "index.html"),
-				protocol: "file:",
-				slashes: true
-			}));
-			appWindow.once("ready-to-show", () => {
-				appWindow.show();
-				authWindow.close();
-				app.remote.getCurrentWindow().close();
+			authWindow.on("closed", () => {
+				authWindow = null;
+			});
+			authWindow.webContents.on("will-navigate", function (event, newUrl) {
+				if(newUrl.startsWith("https://localhost:144/") && newUrl.split("?")[1].split("&")[0].split("=")[1] && newUrl.split("?")[1].split("&")[1].split("=")[1] && newUrl.split("?")[1].split("&")[2].split("=")[1]) {
+					event.preventDefault();
+					storage.set("auth", {id: newUrl.split("?")[1].split("&")[0].split("=")[1], token: newUrl.split("?")[1].split("&")[1].split("=")[1], remember: newUrl.split("?")[1].split("&")[2].split("=")[1]}, function(error) {
+						if (error) throw error;
+					});
+					appWindow = new BrowserWindow({width: 800, height: 600, frame: false, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
+					appWindow.loadURL(url.format({
+						pathname: path.join(__dirname, "index.html"),
+						protocol: "file:",
+						slashes: true
+					}));
+					appWindow.once("ready-to-show", () => {
+						appWindow.show();
+						authWindow.close();
+						app.remote.getCurrentWindow().close();
+					});
+				}
 			});
 		}
 	});
