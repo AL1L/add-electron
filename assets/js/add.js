@@ -18,6 +18,25 @@ let auth = true;
 /*
  *	FUNCTIONS
  */
+function connectionError() {
+	auth = false;
+	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#fff", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
+	authWindow.setMenu(null);
+	authWindow.loadURL(url.format({
+		pathname: path.join(__dirname, "error.html"),
+		protocol: "file:",
+		slashes: true
+	}));
+	authWindow.once("ready-to-show", () => {
+		authWindow.show();
+		app.remote.getCurrentWindow().hide();
+	});
+	authWindow.on("closed", () => {
+		authWindow = null;
+		app.remote.getCurrentWindow().close();
+	});
+}
+ 
 function authOut() {
 	auth = false;
 	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
@@ -27,8 +46,12 @@ function authOut() {
 		method: "GET",
 		json: true
 	}, function (error, response, body) {
-		if (error) throw error;
-		if(response.body.status == "success") {
+		if(error || response.body.status != "success") {
+			if(error) {
+				console.log(error);
+			}
+			connectionError();
+		} else {
 			authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&minimal=true&token=" + response.body.data.token + "&id=" + response.body.data.id);
 			authWindow.once("ready-to-show", () => {
 				authWindow.show();
@@ -70,8 +93,15 @@ function authCheck() {
 					json: true,
 					body: {sec: "validate", id: data.id, token: data.token}
 				}, function (error, response, body) {
-					if (error) throw error;
-					if(response.body.status == "success") {
+					if(error || response.body.status != "success") {
+						if(error) {
+							console.log(error);
+						}
+						storage.clear(function(error) {
+							if (error) throw error;
+						});
+						connectionError();
+					} else {
 						$.each(response.body.data, function(key, value) {
 							$("." + key).text(value);
 						});
@@ -92,8 +122,12 @@ function authCheck() {
 							json: true,
 							body: {sec: "list", id: data.id, token: data.token}
 						}, function (error, response, body) {
-							if (error) throw error;
-							if(response.body.status == "success") {
+							if(error || response.body.status != "success") {
+								if(error) {
+									console.log(error);
+								}
+								connectionError();
+							} else {
 								var message;
 								$.each(response.body.data, function(key, value) {
 									if(value.status == "new") {
@@ -101,7 +135,7 @@ function authCheck() {
 										if(message.length > 200) {
 											message = message.substr(0, 197) + "...";
 										}
-										let myNotification = new Notification(value.title, {body: message})
+										let myNotification = new Notification(value.title, {body: message});
 										request({
 											url: "https://www.theartex.net/cloud/api/alerts",
 											method: "POST",
@@ -114,11 +148,6 @@ function authCheck() {
 								});
 							}
 						});
-					} else {
-						storage.clear(function(error) {
-							if (error) throw error;
-						});
-						authOut();
 					}
 				});
 			} else {
@@ -145,9 +174,13 @@ function getAnnouncements(page = 1, multiple = 10) {
 		json: true,
 		body: {sec: "announcements"}
 	}, function (error, response, body) {
-		if (error) throw error;
-		$("tbody").empty();
-		if(response.body.status == "success") {
+		if(error || response.body.status != "success") {
+			if(error) {
+				console.log(error);
+			}
+			connectionError();
+		} else {
+			$("tbody").empty();
 			$.each(response.body.data, function(key, value) {
 				page.count++;
 				if(page.count <= page.max && page.count > page.min) {
@@ -192,8 +225,6 @@ function getAnnouncements(page = 1, multiple = 10) {
 			if(rows > page.max) {
 				$(".pagination").append("<a data-page=\"" + (page.number + 1) + "\">Next <i class=\"fa fa-angle-right\"></i></a><a data-page=\"" + pages.total + "\">Last <i class=\"fa fa-angle-double-right\"></i></a>");
 			}
-		} else {
-			$("tbody").append("<tr><td>An error occurred while contacting the API.</td><td class=\"text-right\">---</td></tr>");
 		}
 	});
 }
@@ -214,9 +245,13 @@ function getAlerts(page = 1, multiple = 10) {
 			json: true,
 			body: {sec: "list", id: data.id, token: data.token}
 		}, function (error, response, body) {
-			if (error) throw error;
-			$("tbody").empty();
-			if(response.body.status == "success") {
+			if(error || response.body.status != "success") {
+				if(error) {
+					console.log(error);
+				}
+				connectionError();
+			} else {
+				$("tbody").empty();
 				$.each(response.body.data, function(key, value) {
 					page.count++;
 					if(page.count <= page.max && page.count > page.min) {
@@ -271,8 +306,6 @@ function getAlerts(page = 1, multiple = 10) {
 				if(rows > page.max) {
 					$(".pagination").append("<a data-page=\"" + (page.number + 1) + "\">Next <i class=\"fa fa-angle-right\"></i></a><a data-page=\"" + pages.total + "\">Last <i class=\"fa fa-angle-double-right\"></i></a>");
 				}
-			} else {
-				$("tbody").append("<tr><td>An error occurred while contacting the API.</td><td class=\"text-right\">---</td></tr>");
 			}
 		});
 	});
@@ -320,5 +353,5 @@ $(".pagination").on("click", "a", function() {
 $(document).ready(function() {
 	getAnnouncements();
 	authCheck();
-	setInterval(authCheck, 2500);	
+	setInterval(authCheck, 1000);	
 });

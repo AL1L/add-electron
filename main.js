@@ -15,7 +15,7 @@ let authWindow;
  *	FUNCTIONS
  */
 function createWindow() {
-	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
+	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#fff", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
 	authWindow.setMenu(null);
 	authWindow.webContents.session.clearCache(function() {
 		storage.get("auth", function(error, data) {
@@ -43,8 +43,16 @@ function createWindow() {
 					method: "GET",
 					json: true
 				}, function (error, response, body) {
-					if (error) throw error;
-					if(response.body.status == "success") {
+					if(error || response.body.status != "success") {
+						if(error) {
+							console.log(error);
+						}
+						authWindow.loadURL(url.format({
+							pathname: path.join(__dirname, "error.html"),
+							protocol: "file:",
+							slashes: true
+						}));
+					} else {
 						authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&minimal=true&token=" + response.body.data.token + "&id=" + response.body.data.id);
 					}
 				});
