@@ -1,5 +1,5 @@
 body {
-	font-family: 'Roboto', sans-serif;
+	font-family: "Roboto", sans-serif;
 	padding: 0;
 	margin: 0;
 }
@@ -31,8 +31,12 @@ body {
 /*
  *	MAIN
  */
+.wrapper {
+	height: 100vh;
+	overflow: auto;
+}
 .main {
-	padding: 75px 10% 50px 10%;
+	padding: 75px 10% 50px;
 }
 .card {
 	padding: 10px;
@@ -124,7 +128,6 @@ body {
 	width: 8px;
 }
 ::-webkit-scrollbar-thumb {
-	border-radius: 5px;
 	background: #050505;
 }
 ::-webkit-scrollbar-track {
