@@ -13,13 +13,14 @@ const {BrowserWindow} = require("electron").remote;
 /*
  *	VARIABLES
  */
-let auth = true;
+var auth = true;
 
 /*
  *	FUNCTIONS
  */
-function connectionError() {
+function displayError() {
 	auth = false;
+	
 	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#fff", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
 	authWindow.setMenu(null);
 	authWindow.loadURL(url.format({
@@ -27,6 +28,10 @@ function connectionError() {
 		protocol: "file:",
 		slashes: true
 	}));
+	
+	/*
+	 *	FUNCTION -> EVENTS
+	 */
 	authWindow.once("ready-to-show", () => {
 		authWindow.show();
 		app.remote.getCurrentWindow().hide();
@@ -39,6 +44,7 @@ function connectionError() {
  
 function authOut() {
 	auth = false;
+	
 	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
 	authWindow.setMenu(null);
 	request({
@@ -47,12 +53,13 @@ function authOut() {
 		json: true
 	}, function (error, response, body) {
 		if(error || response.body.status != "success") {
-			if(error) {
-				console.log(error);
-			}
-			connectionError();
+			displayError();
 		} else {
 			authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&minimal=true&token=" + response.body.data.token + "&id=" + response.body.data.id);
+			
+			/*
+			 *	FUNCTION -> EVENTS
+			 */
 			authWindow.once("ready-to-show", () => {
 				authWindow.show();
 				app.remote.getCurrentWindow().hide();
@@ -72,6 +79,10 @@ function authOut() {
 						protocol: "file:",
 						slashes: true
 					}));
+					
+					/*
+					 *	FUNCTION -> EVENTS
+					 */
 					appWindow.once("ready-to-show", () => {
 						appWindow.show();
 						authWindow.close();
@@ -94,13 +105,10 @@ function authCheck() {
 					body: {sec: "validate", id: data.id, token: data.token}
 				}, function (error, response, body) {
 					if(error || response.body.status != "success") {
-						if(error) {
-							console.log(error);
-						}
 						storage.clear(function(error) {
 							if (error) throw error;
 						});
-						connectionError();
+						displayError();
 					} else {
 						$.each(response.body.data, function(key, value) {
 							$("." + key).text(value);
@@ -123,19 +131,15 @@ function authCheck() {
 							body: {sec: "list", id: data.id, token: data.token}
 						}, function (error, response, body) {
 							if(error || response.body.status != "success") {
-								if(error) {
-									console.log(error);
-								}
-								connectionError();
+								displayError();
 							} else {
 								var message;
 								$.each(response.body.data, function(key, value) {
 									if(value.status == "new") {
-										message = value.message;
-										if(message.length > 200) {
-											message = message.substr(0, 197) + "...";
+										if(value.message.length > 200) {
+											value.message = value.message.substr(0, 197) + "...";
 										}
-										let myNotification = new Notification(value.title, {body: message});
+										let myNotification = new Notification(value.title, {body: value.message});
 										request({
 											url: "https://www.theartex.net/cloud/api/alerts",
 											method: "POST",
@@ -161,13 +165,8 @@ function authCheck() {
 }
 function getAnnouncements(page = 1, multiple = 10) {
 	$(".content").attr("data-page", "announcements");
-	$(".pagination").empty(),
-		$("tbody").empty(),
-		$("thead").empty();
-	$("thead").append("<tr><th>Announcement</th><th class=\"text-right\">Date</th></tr>"),
-		$("tbody").append("<tr><td>Loading announcements...</td><td class=\"text-right\">---</td></tr>");
-	var page = {min: (page - 1) * multiple, max: page * multiple, count: 0, posts: 0, number: page},
-		pages = {};
+	$(".pagination").empty(), $("tbody").html("<tr><td>Loading announcements...</td><td class=\"text-right\">---</td></tr>"), $("thead").html("<tr><th>Announcement</th><th class=\"text-right\">Date</th></tr>");
+	var page = {min: (page - 1) * multiple, max: page * multiple, count: 0, posts: 0, number: page}, pages = {};
 	request({
 		url: "https://www.theartex.net/cloud/api/",
 		method: "POST",
@@ -175,10 +174,7 @@ function getAnnouncements(page = 1, multiple = 10) {
 		body: {sec: "announcements"}
 	}, function (error, response, body) {
 		if(error || response.body.status != "success") {
-			if(error) {
-				console.log(error);
-			}
-			connectionError();
+			displayError();
 		} else {
 			$("tbody").empty();
 			$.each(response.body.data, function(key, value) {
@@ -190,10 +186,8 @@ function getAnnouncements(page = 1, multiple = 10) {
 			});
 			if(page.posts == 0) {
 				$("tbody").append("<tr><td>No announcements could be listed on this page.</td><td class=\"text-right\">---</td></tr>");
-				var rows = 0;
-			} else {
-				var rows = Object.keys(response.body.data).length;
 			}
+			var rows = (response.body.data) ? Object.keys(response.body.data).length : 0;
 			if(page.number > 1) {
 				$(".pagination").append("<a data-page=\"1\"><i class=\"fa fa-angle-double-left\"></i> First</a><a data-page=\"" + (page.number - 1) + "\"><i class=\"fa fa-angle-left\"></i> Previous</a>");
 			}
@@ -230,15 +224,10 @@ function getAnnouncements(page = 1, multiple = 10) {
 }
 function getAlerts(page = 1, multiple = 10) {
 	$(".content").attr("data-page", "alerts");
-	$(".pagination").empty(),
-		$("tbody").empty(),
-		$("thead").empty();
-	$("thead").append("<tr><th>Alert</th><th class=\"text-right\">Date</th></tr>"),
-		$("tbody").append("<tr><td>Loading alerts...</td><td class=\"text-right\">---</td></tr>");
-	var page = {min: (page - 1) * multiple, max: page * multiple, count: 0, posts: 0, number: page},
-		pages = {};
+	$(".pagination").empty(), $("tbody").html("<tr><td>Loading alerts...</td><td class=\"text-right\">---</td></tr>"), $("thead").html("<tr><th>Alert</th><th class=\"text-right\">Date</th></tr>");
+	var page = {min: (page - 1) * multiple, max: page * multiple, count: 0, posts: 0, number: page}, pages = {};
 	storage.get("auth", function(error, data) {
-		if(error) throw error;
+		if (error) throw error;
 		request({
 			url: "https://www.theartex.net/cloud/api/alerts",
 			method: "POST",
@@ -246,10 +235,7 @@ function getAlerts(page = 1, multiple = 10) {
 			body: {sec: "list", id: data.id, token: data.token}
 		}, function (error, response, body) {
 			if(error || response.body.status != "success") {
-				if(error) {
-					console.log(error);
-				}
-				connectionError();
+				displayError();
 			} else {
 				$("tbody").empty();
 				$.each(response.body.data, function(key, value) {
@@ -271,10 +257,8 @@ function getAlerts(page = 1, multiple = 10) {
 				});
 				if(page.posts == 0) {
 					$("tbody").append("<tr><td>No alerts could be listed on this page.</td><td class=\"text-right\">---</td></tr>");
-					var rows = 0;
-				} else {
-					var rows = Object.keys(response.body.data).length;
 				}
+				var rows = (response.body.data) ? Object.keys(response.body.data).length : 0;
 				if(page.number > 1) {
 					$(".pagination").append("<a data-page=\"1\"><i class=\"fa fa-angle-double-left\"></i> First</a><a data-page=\"" + (page.number - 1) + "\"><i class=\"fa fa-angle-left\"></i> Previous</a>");
 				}

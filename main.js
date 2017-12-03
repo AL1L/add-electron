@@ -27,6 +27,10 @@ function createWindow() {
 					protocol: "file:",
 					slashes: true
 				}));
+				
+				/*
+				 *	FUNCTION -> EVENTS
+				 */
 				appWindow.once("ready-to-show", () => {
 					appWindow.show();
 					authWindow.close();
@@ -75,6 +79,10 @@ function createWindow() {
 				protocol: "file:",
 				slashes: true
 			}));
+			
+			/*
+			 *	FUNCTION -> EVENTS
+			 */
 			appWindow.once("ready-to-show", () => {
 				appWindow.show();
 				authWindow.close();
@@ -87,6 +95,10 @@ function createWindow() {
 			shell.openExternal(newUrl);
 		}
 	});
+	
+	/*
+	 *	FUNCTION -> EVENTS
+	 */
 	authWindow.once("ready-to-show", () => {
 		authWindow.show()
 	});
