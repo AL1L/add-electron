@@ -125,7 +125,7 @@ function authCheck() {
 							if (error) throw error;
 						});
 						request({
-							url: "https://www.theartex.net/cloud/api/alerts",
+							url: "https://www.theartex.net/cloud/api/notifications",
 							method: "POST",
 							json: true,
 							body: {sec: "list", id: data.id, token: data.token}
@@ -141,10 +141,10 @@ function authCheck() {
 										}
 										let myNotification = new Notification(value.title, {body: value.message});
 										request({
-											url: "https://www.theartex.net/cloud/api/alerts",
+											url: "https://www.theartex.net/cloud/api/notifications",
 											method: "POST",
 											json: true,
-											body: {sec: "status", alert: value.id, status: "idle", id: data.id, token: data.token}
+											body: {sec: "status", notification: value.id, status: "idle", id: data.id, token: data.token}
 										}, function (error) {
 											if (error) throw error;
 										});
@@ -222,14 +222,14 @@ function getAnnouncements(page = 1, multiple = 10) {
 		}
 	});
 }
-function getAlerts(page = 1, multiple = 10) {
-	$(".content").attr("data-page", "alerts");
-	$(".pagination").empty(), $("tbody").html("<tr><td>Loading alerts...</td><td class=\"text-right\">---</td></tr>"), $("thead").html("<tr><th>Alert</th><th class=\"text-right\">Date</th></tr>");
+function getNotifications(page = 1, multiple = 10) {
+	$(".content").attr("data-page", "notifications");
+	$(".pagination").empty(), $("tbody").html("<tr><td>Loading notifications...</td><td class=\"text-right\">---</td></tr>"), $("thead").html("<tr><th>Notification</th><th class=\"text-right\">Date</th></tr>");
 	var page = {min: (page - 1) * multiple, max: page * multiple, count: 0, posts: 0, number: page}, pages = {};
 	storage.get("auth", function(error, data) {
 		if (error) throw error;
 		request({
-			url: "https://www.theartex.net/cloud/api/alerts",
+			url: "https://www.theartex.net/cloud/api/notifications",
 			method: "POST",
 			json: true,
 			body: {sec: "list", id: data.id, token: data.token}
@@ -246,17 +246,17 @@ function getAlerts(page = 1, multiple = 10) {
 					}
 					if(value.status == "new" || value.status == "idle") {
 						request({
-							url: "https://www.theartex.net/cloud/api/alerts",
+							url: "https://www.theartex.net/cloud/api/notifications",
 							method: "POST",
 							json: true,
-							body: {sec: "status", alert: value.id, status: "old", id: data.id, token: data.token}
+							body: {sec: "status", notification: value.id, status: "old", id: data.id, token: data.token}
 						}, function (error) {
 							if (error) throw error;
 						});
 					}
 				});
 				if(page.posts == 0) {
-					$("tbody").append("<tr><td>No alerts could be listed on this page.</td><td class=\"text-right\">---</td></tr>");
+					$("tbody").append("<tr><td>No notifications could be listed on this page.</td><td class=\"text-right\">---</td></tr>");
 				}
 				var rows = (response.body.data) ? Object.keys(response.body.data).length : 0;
 				if(page.number > 1) {
@@ -310,8 +310,8 @@ $(".closeWindow").click(function() {
 $(".getAnnouncements").click(function() {
     getAnnouncements();
 });
-$(".getAlerts").click(function() {
-    getAlerts();
+$(".getNotifications").click(function() {
+    getNotifications();
 });
 $(".authOut").click(function() {
 	storage.clear(function(error) {
@@ -324,8 +324,8 @@ $(document).on("click", "a[href^=\"http\"]", function(event) {
     app.shell.openExternal(this.href);
 });
 $(".pagination").on("click", "a", function() {
-	if($(".content").attr("data-page") == "alerts") {
-		getAlerts(parseInt($(this).attr("data-page")));
+	if($(".content").attr("data-page") == "notifications") {
+		getNotifications(parseInt($(this).attr("data-page")));
 	} else {
 		getAnnouncements(parseInt($(this).attr("data-page")));
 	}
