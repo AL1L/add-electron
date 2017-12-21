@@ -48,7 +48,7 @@ function authOut() {
 	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
 	authWindow.setMenu(null);
 	request({
-		url: "https://www.theartex.net/cloud/api/user/?sec=token",
+		url: "https://api.theartex.net/user/?sec=token",
 		method: "GET",
 		json: true
 	}, function (error, response, body) {
@@ -99,7 +99,7 @@ function authCheck() {
 			if (error) throw error;
 			if(data.token && data.id) {
 				request({
-					url: "https://www.theartex.net/cloud/api/user",
+					url: "https://api.theartex.net/user",
 					method: "POST",
 					json: true,
 					body: {sec: "validate", id: data.id, token: data.token}
@@ -117,7 +117,7 @@ function authCheck() {
 							if (error) throw error;
 						});
 						request({
-							url: "https://www.theartex.net/cloud/api/user",
+							url: "https://api.theartex.net/user",
 							method: "POST",
 							json: true,
 							body: {sec: "session", application: "Artex Development Dashboard (Electron)", id: data.id, token: data.token}
@@ -125,7 +125,7 @@ function authCheck() {
 							if (error) throw error;
 						});
 						request({
-							url: "https://www.theartex.net/cloud/api/notifications",
+							url: "https://api.theartex.net/notifications",
 							method: "POST",
 							json: true,
 							body: {sec: "list", id: data.id, token: data.token}
@@ -141,7 +141,7 @@ function authCheck() {
 										}
 										let myNotification = new Notification(value.title, {body: value.message});
 										request({
-											url: "https://www.theartex.net/cloud/api/notifications",
+											url: "https://api.theartex.net/notifications",
 											method: "POST",
 											json: true,
 											body: {sec: "status", notification: value.id, status: "idle", id: data.id, token: data.token}
@@ -168,7 +168,7 @@ function getAnnouncements(page = 1, multiple = 10) {
 	$(".pagination").empty(), $("tbody").html("<tr><td>Loading announcements...</td><td class=\"text-right\">---</td></tr>"), $("thead").html("<tr><th>Announcement</th><th class=\"text-right\">Date</th></tr>");
 	var page = {min: (page - 1) * multiple, max: page * multiple, count: 0, posts: 0, number: page}, pages = {};
 	request({
-		url: "https://www.theartex.net/cloud/api/",
+		url: "https://api.theartex.net/",
 		method: "POST",
 		json: true,
 		body: {sec: "announcements"}
@@ -189,7 +189,7 @@ function getAnnouncements(page = 1, multiple = 10) {
 			}
 			var rows = (response.body.data) ? Object.keys(response.body.data).length : 0;
 			if(page.number > 1) {
-				$(".pagination").append("<a data-page=\"1\"><i class=\"fa fa-angle-double-left\"></i> First</a><a data-page=\"" + (page.number - 1) + "\"><i class=\"fa fa-angle-left\"></i> Previous</a>");
+				$(".pagination").append("<a data-page=\"1\"><i class=\"fa fa-angle-double-left\"></i></a><a data-page=\"" + (page.number - 1) + "\"><i class=\"fa fa-angle-left\"></i></a>");
 			}
 			pages.total = Math.floor(rows / multiple);
 			if(rows % 10 != 0 || rows == 0) {
@@ -217,7 +217,7 @@ function getAnnouncements(page = 1, multiple = 10) {
 				pages.count++;
 			}
 			if(rows > page.max) {
-				$(".pagination").append("<a data-page=\"" + (page.number + 1) + "\">Next <i class=\"fa fa-angle-right\"></i></a><a data-page=\"" + pages.total + "\">Last <i class=\"fa fa-angle-double-right\"></i></a>");
+				$(".pagination").append("<a data-page=\"" + (page.number + 1) + "\"><i class=\"fa fa-angle-right\"></i></a><a data-page=\"" + pages.total + "\"><i class=\"fa fa-angle-double-right\"></i></a>");
 			}
 		}
 	});
@@ -229,7 +229,7 @@ function getNotifications(page = 1, multiple = 10) {
 	storage.get("auth", function(error, data) {
 		if (error) throw error;
 		request({
-			url: "https://www.theartex.net/cloud/api/notifications",
+			url: "https://api.theartex.net/notifications",
 			method: "POST",
 			json: true,
 			body: {sec: "list", id: data.id, token: data.token}
@@ -246,7 +246,7 @@ function getNotifications(page = 1, multiple = 10) {
 					}
 					if(value.status == "new" || value.status == "idle") {
 						request({
-							url: "https://www.theartex.net/cloud/api/notifications",
+							url: "https://api.theartex.net/notifications",
 							method: "POST",
 							json: true,
 							body: {sec: "status", notification: value.id, status: "old", id: data.id, token: data.token}
@@ -260,7 +260,7 @@ function getNotifications(page = 1, multiple = 10) {
 				}
 				var rows = (response.body.data) ? Object.keys(response.body.data).length : 0;
 				if(page.number > 1) {
-					$(".pagination").append("<a data-page=\"1\"><i class=\"fa fa-angle-double-left\"></i> First</a><a data-page=\"" + (page.number - 1) + "\"><i class=\"fa fa-angle-left\"></i> Previous</a>");
+					$(".pagination").append("<a data-page=\"1\"><i class=\"fa fa-angle-double-left\"></i></a><a data-page=\"" + (page.number - 1) + "\"><i class=\"fa fa-angle-left\"></i></a>");
 				}
 				pages.total = Math.floor(rows / multiple);
 				if(rows % 10 != 0 || rows == 0) {
@@ -288,7 +288,7 @@ function getNotifications(page = 1, multiple = 10) {
 					pages.count++;
 				}
 				if(rows > page.max) {
-					$(".pagination").append("<a data-page=\"" + (page.number + 1) + "\">Next <i class=\"fa fa-angle-right\"></i></a><a data-page=\"" + pages.total + "\">Last <i class=\"fa fa-angle-double-right\"></i></a>");
+					$(".pagination").append("<a data-page=\"" + (page.number + 1) + "\"><i class=\"fa fa-angle-right\"></i></a><a data-page=\"" + pages.total + "\"><i class=\"fa fa-angle-double-right\"></i></a>");
 				}
 			}
 		});

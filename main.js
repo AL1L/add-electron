@@ -43,7 +43,7 @@ function createWindow() {
 					if (error) throw error;
 				});
 				request({
-					url: "https://www.theartex.net/cloud/api/user/?sec=token",
+					url: "https://api.theartex.net/user/?sec=token",
 					method: "GET",
 					json: true
 				}, function (error, response, body) {
