@@ -13,7 +13,9 @@ The developer API can be found at https://www.theartex.net/documentation/.
 ### Build Instructions
 Before anything, please make sure you have Node.js, NPM and Yarn installed globally.
 
-Once you have cloned the files to a local directory, run the following command to add electron-builder as a local dependency.
+Once you have cloned the files to a local directory, make sure to include your application's identifier in the `main.js` and `add.js` files.
+
+Run the following command to add electron-builder as a local dependency.
 ```
 $ yarn add electron-builder --dev
 ```
