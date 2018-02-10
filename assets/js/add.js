@@ -45,64 +45,74 @@ function displayError() {
 function authOut() {
 	auth = false;
 	
-	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
+	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false, nodeIntegration: false}});
 	authWindow.setMenu(null);
-	request({
-		url: "https://api.theartex.net/user/?sec=token",
-		method: "GET",
-		json: true
-	}, function (error, response, body) {
-		if(error || response.body.status != "success") {
-			displayError();
-		} else {
-			authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&minimal=true&token=" + response.body.data.token + "&id=" + response.body.data.id);
-			
-			/*
-			 *	FUNCTION -> EVENTS
-			 */
-			authWindow.once("ready-to-show", () => {
-				authWindow.show();
-				app.remote.getCurrentWindow().hide();
-			});
-			authWindow.on("closed", () => {
-				authWindow = null;
-			});
-			authWindow.webContents.on("will-navigate", function (event, newUrl) {
-				if(newUrl.startsWith("https://localhost:144/") && newUrl.split("?")[1].split("&")[0].split("=")[1] && newUrl.split("?")[1].split("&")[1].split("=")[1] && newUrl.split("?")[1].split("&")[2].split("=")[1]) {
+	authWindow.webContents.session.clearStorageData(function() {
+		request({
+			url: "https://api.theartex.net/",
+			method: "GET",
+			json: true
+		}, function (error, response, body) {
+			if(error || response.body.method != "GET") {
+				displayError();
+			} else {
+				// Insert your application's client identifier here. Artex Development Dashboard requires write access for notification updates.
+				authWindow.loadURL("https://www.theartex.net/account/authorize/?client_id=" + CLIENT_IDENTIFIER + "&response_type=token&scope=write&redirect_uri=https://add.callback.localhost:144/");
+				
+				/*
+				 *	FUNCTION -> EVENTS
+				 */
+				authWindow.once("ready-to-show", () => {
+					authWindow.show();
+					app.remote.getCurrentWindow().hide();
+				});
+				authWindow.on("closed", () => {
+					authWindow = null;
+				});
+				authWindow.webContents.on("will-navigate", function (event, newUrl) {
+					if(newUrl.startsWith("https://add.callback.localhost:144/") && newUrl.split("#")[1].split("=")[1]) {
+						event.preventDefault();
+						storage.set("auth", {token: newUrl.split("#")[1].split("=")[1]}, function(error) {
+							if (error) throw error;
+						});
+						appWindow = new BrowserWindow({width: 800, height: 600, frame: false, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
+						appWindow.loadURL(url.format({
+							pathname: path.join(__dirname, "index.html"),
+							protocol: "file:",
+							slashes: true
+						}));
+						
+						/*
+						 *	FUNCTION -> EVENTS
+						 */
+						appWindow.once("ready-to-show", () => {
+							appWindow.show();
+							authWindow.close();
+							app.remote.getCurrentWindow().close();
+						});
+					} else if(!newUrl.startsWith("https://www.theartex.net/account/login/") && !newUrl.startsWith("https://www.theartex.net/account/authorize/")) {
+						event.preventDefault();
+						shell.openExternal(newUrl);
+					}
+				});
+				authWindow.webContents.on("new-window", function(event, newUrl) {
 					event.preventDefault();
-					storage.set("auth", {id: newUrl.split("?")[1].split("&")[0].split("=")[1], token: newUrl.split("?")[1].split("&")[1].split("=")[1], remember: newUrl.split("?")[1].split("&")[2].split("=")[1]}, function(error) {
-						if (error) throw error;
-					});
-					appWindow = new BrowserWindow({width: 800, height: 600, frame: false, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
-					appWindow.loadURL(url.format({
-						pathname: path.join(__dirname, "index.html"),
-						protocol: "file:",
-						slashes: true
-					}));
-					
-					/*
-					 *	FUNCTION -> EVENTS
-					 */
-					appWindow.once("ready-to-show", () => {
-						appWindow.show();
-						authWindow.close();
-						app.remote.getCurrentWindow().close();
-					});
-				}
-			});
-		}
+					shell.openExternal(newUrl);
+				});
+			}
+		});
 	});
 }
 function authCheck() {
 	if(auth == true) {
 		storage.get("auth", function(error, data) {
 			if (error) throw error;
-			if(data.token && data.id) {
+			if(data.token) {
 				request({
-					url: "https://api.theartex.net/user",
+					url: "https://api.theartex.net/v1/user",
 					method: "POST",
 					json: true,
-					body: {sec: "validate", id: data.id, token: data.token}
+					body: {token: data.token}
 				}, function (error, response, body) {
 					if(error || response.body.status != "success") {
 						storage.clear(function(error) {
@@ -113,38 +123,29 @@ function authCheck() {
 						$.each(response.body.data, function(key, value) {
 							$("." + key).text(value);
 						});
-						storage.set("user", {username: response.body.data.username, role: response.body.data.role, email: response.body.data.email, gravatar: response.body.data.gravatar, page: response.body.data.page, last_seen: response.body.data.last_seen}, function(error) {
+						storage.set("user", {username: response.body.data.username, role: response.body.data.role, email: response.body.data.email, gravatar: response.body.data.gravatar, notifications: response.body.data.notifications}, function(error) {
 							if (error) throw error;
 						});
 						request({
-							url: "https://api.theartex.net/user",
+							url: "https://api.theartex.net/v1/user/notifications",
 							method: "POST",
 							json: true,
-							body: {sec: "session", application: "Artex Development Dashboard (Electron)", id: data.id, token: data.token}
-						}, function (error) {
-							if (error) throw error;
-						});
-						request({
-							url: "https://api.theartex.net/notifications",
-							method: "POST",
-							json: true,
-							body: {sec: "list", id: data.id, token: data.token}
+							body: {token: data.token}
 						}, function (error, response, body) {
 							if(error || response.body.status != "success") {
 								displayError();
 							} else {
-								var message;
 								$.each(response.body.data, function(key, value) {
-									if(value.status == "new") {
-										if(value.message.length > 200) {
-											value.message = value.message.substr(0, 197) + "...";
+									if(value.new == "true") {
+										if(value.content.length > 200) {
+											value.content = value.content.substr(0, 197) + "...";
 										}
-										let myNotification = new Notification(value.title, {body: value.message});
+										let myNotification = new Notification(value.application.name, {body: value.content});
 										request({
-											url: "https://api.theartex.net/notifications",
+											url: "https://api.theartex.net/v1/notification/update",
 											method: "POST",
 											json: true,
-											body: {sec: "status", notification: value.id, status: "idle", id: data.id, token: data.token}
+											body: {uid: value.uid, token: data.token}
 										}, function (error) {
 											if (error) throw error;
 										});
@@ -163,132 +164,102 @@ function authCheck() {
 		});
 	}
 }
-function getAnnouncements(page = 1, multiple = 10) {
+function getAnnouncements(page = 1, limit = 10) {
 	$(".content").attr("data-page", "announcements");
-	$(".pagination").empty(), $("tbody").html("<tr><td>Loading announcements...</td><td class=\"text-right\">---</td></tr>"), $("thead").html("<tr><th>Announcement</th><th class=\"text-right\">Date</th></tr>");
-	var page = {min: (page - 1) * multiple, max: page * multiple, count: 0, posts: 0, number: page}, pages = {};
+	$(".pagination").empty(), $("tbody").html("<tr><td>Loading announcements...</td><td class=\"text-right\">-</td></tr>"), $("thead").html("<tr><th>Announcement</th><th class=\"text-right\">Author</th><th class=\"text-right\">Date</th></tr>");
 	request({
-		url: "https://api.theartex.net/",
+		url: "https://api.theartex.net/v1/announcements",
 		method: "POST",
 		json: true,
-		body: {sec: "announcements"}
+		body: {page: page, limit: limit}
 	}, function (error, response, body) {
 		if(error || response.body.status != "success") {
 			displayError();
 		} else {
 			$("tbody").empty();
-			$.each(response.body.data, function(key, value) {
-				page.count++;
-				if(page.count <= page.max && page.count > page.min) {
-					$("tbody").append("<tr><td>" + value.message + "</td><td class=\"text-right\">" + dateFormat(value.trn_date, "mmmm dS, yyyy") + "</td></tr>");
-					page.posts++;
-				}
-			});
-			if(page.posts == 0) {
-				$("tbody").append("<tr><td>No announcements could be listed on this page.</td><td class=\"text-right\">---</td></tr>");
-			}
-			var rows = (response.body.data) ? Object.keys(response.body.data).length : 0;
-			if(page.number > 1) {
-				$(".pagination").append("<a data-page=\"1\"><i class=\"fa fa-angle-double-left\"></i></a><a data-page=\"" + (page.number - 1) + "\"><i class=\"fa fa-angle-left\"></i></a>");
-			}
-			pages.total = Math.floor(rows / multiple);
-			if(rows % 10 != 0 || rows == 0) {
-				pages.total++;
-			}
-			if(page.number < 5) {
-				pages.min = 1; 
-				pages.max = 9;
-			} else if(page.number > (pages.total - 8)) {
-				pages.min = pages.total - 8; 
-				pages.max = pages.total;
+			if(response.body.data) {
+				$.each(response.body.data, function(key, value) {
+					$("tbody").append("<tr><td>" + value.content + "</td><td class=\"text-right\">" + value.user.username + "</td><td class=\"text-right\">" + dateFormat(value.trn_date, "mmmm dS, yyyy") + "</td></tr>");
+				});
 			} else {
-				pages.min = pages.number - 4; 
-				pages.max = pages.number + 4; 
+				$("tbody").append("<tr><td>No announcements could be listed on this page.</td><td class=\"text-right\">-</td><td class=\"text-right\">-</td></tr>");
 			}
-			if(pages.max > pages.total) {
-				pages.max = pages.total;
+			if(page > 1) {
+				$(".pagination").append("<a data-page=\"1\"><i class=\"fa fa-angle-double-left\"></i></a><a data-page=\"" + (page - 1) + "\"><i class=\"fa fa-angle-left\"></i></a>");
 			}
-			if(pages.min < 1) {
-				pages.min = 1;
+			var minimum, maximum;
+			if(page < 5) {
+				minimum = 1; 
+				maximum = 9;
+			} else if(page > (response.body.page.total - 8)) {
+				minimum = response.body.page.total - 8; 
+				maximum = response.body.page.total;
+			} else {
+				minimum = response.body.page.total - 4; 
+				maximum = response.body.page.total + 4; 
 			}
-			pages.count = pages.min;
-			while(pages.count <= pages.max) {
-				$(".pagination").append("<a" + (pages.count == page.number ? " class=\"active\"" : "") + " data-page=\"" + pages.count + "\">" + pages.count + "</a>");
-				pages.count++;
+			if(maximum > response.body.page.total) {
+				maximum = response.body.page.total;
 			}
-			if(rows > page.max) {
-				$(".pagination").append("<a data-page=\"" + (page.number + 1) + "\"><i class=\"fa fa-angle-right\"></i></a><a data-page=\"" + pages.total + "\"><i class=\"fa fa-angle-double-right\"></i></a>");
+			if(minimum < 1) {
+				minimum = 1;
+			}
+			for(var i = minimum; i <= maximum; i++) {
+				$(".pagination").append("<a" + (i == page ? " class=\"active\"" : "") + " data-page=\"" + i + "\">" + i + "</a>");
+			}
+			if(response.body.page.total > page) {
+				$(".pagination").append("<a data-page=\"" + (page + 1) + "\"><i class=\"fa fa-angle-right\"></i></a><a data-page=\"" + response.body.page.total + "\"><i class=\"fa fa-angle-double-right\"></i></a>");
 			}
 		}
 	});
 }
-function getNotifications(page = 1, multiple = 10) {
+function getNotifications(page = 1, limit = 10) {
 	$(".content").attr("data-page", "notifications");
-	$(".pagination").empty(), $("tbody").html("<tr><td>Loading notifications...</td><td class=\"text-right\">---</td></tr>"), $("thead").html("<tr><th>Notification</th><th class=\"text-right\">Date</th></tr>");
-	var page = {min: (page - 1) * multiple, max: page * multiple, count: 0, posts: 0, number: page}, pages = {};
+	$(".pagination").empty(), $("tbody").html("<tr><td>Loading notifications...</td><td class=\"text-right\">-</td><td class=\"text-right\">-</td></tr>"), $("thead").html("<tr><th>Notification</th><th class=\"text-right\">Application</th><th class=\"text-right\">Date</th></tr>");
 	storage.get("auth", function(error, data) {
 		if (error) throw error;
 		request({
-			url: "https://api.theartex.net/notifications",
+			url: "https://api.theartex.net/v1/user/notifications",
 			method: "POST",
 			json: true,
-			body: {sec: "list", id: data.id, token: data.token}
+			body: {token: data.token, page: page, limit: limit}
 		}, function (error, response, body) {
 			if(error || response.body.status != "success") {
 				displayError();
 			} else {
 				$("tbody").empty();
-				$.each(response.body.data, function(key, value) {
-					page.count++;
-					if(page.count <= page.max && page.count > page.min) {
-						$("tbody").append("<tr><td>" + ((value.status == "new" || value.status == "idle") ? "<span class=\"new\"><i class=\"fa fa-exclamation-triangle\"></i></span> " : "") + "<span class=\"title\">(" + value.title + ")</span> " + value.message + "</td><td class=\"text-right\">" + dateFormat(value.trn_date, "mmmm dS, yyyy") + "</td></tr>");
-						page.posts++;
-					}
-					if(value.status == "new" || value.status == "idle") {
-						request({
-							url: "https://api.theartex.net/notifications",
-							method: "POST",
-							json: true,
-							body: {sec: "status", notification: value.id, status: "old", id: data.id, token: data.token}
-						}, function (error) {
-							if (error) throw error;
-						});
-					}
-				});
-				if(page.posts == 0) {
-					$("tbody").append("<tr><td>No notifications could be listed on this page.</td><td class=\"text-right\">---</td></tr>");
-				}
-				var rows = (response.body.data) ? Object.keys(response.body.data).length : 0;
-				if(page.number > 1) {
-					$(".pagination").append("<a data-page=\"1\"><i class=\"fa fa-angle-double-left\"></i></a><a data-page=\"" + (page.number - 1) + "\"><i class=\"fa fa-angle-left\"></i></a>");
-				}
-				pages.total = Math.floor(rows / multiple);
-				if(rows % 10 != 0 || rows == 0) {
-					pages.total++;
-				}
-				if(page.number < 5) {
-					pages.min = 1; 
-					pages.max = 9;
-				} else if(page.number > (pages.total - 8)) {
-					pages.min = pages.total - 8; 
-					pages.max = pages.total;
+				if(response.body.data) {
+					$.each(response.body.data, function(key, value) {
+						$("tbody").append("<tr><td>" + value.content + "</td><td class=\"text-right\">" + value.application.name + "</td><td class=\"text-right\">" + dateFormat(value.trn_date, "mmmm dS, yyyy") + "</td></tr>");
+					});
 				} else {
-					pages.min = pages.number - 4; 
-					pages.max = pages.number + 4; 
+					$("tbody").append("<tr><td>No notifications could be listed on this page.</td><td class=\"text-right\">-</td><td class=\"text-right\">-</td></tr>");
 				}
-				if(pages.max > pages.total) {
-					pages.max = pages.total;
+				if(page > 1) {
+					$(".pagination").append("<a data-page=\"1\"><i class=\"fa fa-angle-double-left\"></i></a><a data-page=\"" + (page - 1) + "\"><i class=\"fa fa-angle-left\"></i></a>");
 				}
-				if(pages.min < 1) {
-					pages.min = 1;
+				var minimum, maximum;
+				if(page < 5) {
+					minimum = 1; 
+					maximum = 9;
+				} else if(page > (response.body.page.total - 8)) {
+					minimum = response.body.page.total - 8; 
+					maximum = response.body.page.total;
+				} else {
+					minimum = response.body.page.total - 4; 
+					maximum = response.body.page.total + 4; 
 				}
-				pages.count = pages.min;
-				while(pages.count <= pages.max) {
-					$(".pagination").append("<a" + (pages.count == page.number ? " class=\"active\"" : "") + " data-page=\"" + pages.count + "\">" + pages.count + "</a>");
-					pages.count++;
+				if(maximum > response.body.page.total) {
+					maximum = response.body.page.total;
 				}
-				if(rows > page.max) {
-					$(".pagination").append("<a data-page=\"" + (page.number + 1) + "\"><i class=\"fa fa-angle-right\"></i></a><a data-page=\"" + pages.total + "\"><i class=\"fa fa-angle-double-right\"></i></a>");
+				if(minimum < 1) {
+					minimum = 1;
+				}
+				for(var i = minimum; i <= maximum; i++) {
+					$(".pagination").append("<a" + (i == page ? " class=\"active\"" : "") + " data-page=\"" + i + "\">" + i + "</a>");
+				}
+				if(response.body.page.total > page) {
+					$(".pagination").append("<a data-page=\"" + (page + 1) + "\"><i class=\"fa fa-angle-right\"></i></a><a data-page=\"" + response.body.page.total + "\"><i class=\"fa fa-angle-double-right\"></i></a>");
 				}
 			}
 		});
@@ -302,7 +273,13 @@ $(".minimizeWindow").click(function() {
     app.remote.getCurrentWindow().minimize();
 });
 $(".maximizeWindow").click(function() {
-    (!app.remote.getCurrentWindow().isMaximized() ? app.remote.getCurrentWindow().maximize() : app.remote.getCurrentWindow().unmaximize());
+    if(app.remote.getCurrentWindow().isMaximized()) {
+		app.remote.getCurrentWindow().unmaximize();
+		$(this).html("<i class=\"fa fa-window-maximize\"></i>");
+	} else {
+		app.remote.getCurrentWindow().maximize();
+		$(this).html("<i class=\"fa fa-window-restore\"></i>");
+	}
 });
 $(".closeWindow").click(function() {
     app.remote.getCurrentWindow().close();

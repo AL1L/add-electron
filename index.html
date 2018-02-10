@@ -3,9 +3,9 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>Artex Development Dashboard</title>
-		<link href="assets/css/google-fonts-roboto.css" rel="stylesheet">
-		<link href="assets/css/font-awesome.min.css" rel="stylesheet">
-		<link href="assets/css/add.css" rel="stylesheet">
+		<link type="text/css" media="screen" href="assets/css/google-fonts-roboto.css" rel="stylesheet">
+		<link type="text/css" media="screen" href="assets/css/font-awesome.min.css" rel="stylesheet">
+		<link type="text/css" media="screen" href="assets/css/add.css" rel="stylesheet">
 	</head>
 	<body>
 		<div class="window-bar">
@@ -18,7 +18,7 @@
 					<li><a class="getAnnouncements">Announcements</a></li>
 					<li><a class="getNotifications">Notifications</a></li>
 					<li class="divider"></li>
-					<li><a class="authOut">Account</a></li>
+					<li><a class="authOut">Logout</a></li>
 				</div>
 				<div class="controls">
 					<li><a class="closeWindow"><i class="fa fa-times"></i></a></li>
@@ -47,9 +47,18 @@
 				</div>
 			</div>
 		</div>
-		<script>if(typeof module === 'object') {window.module = module; module = undefined;}</script>
+		<script type="text/javascript">
+		if(typeof module === "object") {
+			window.module = module; 
+			module = undefined;
+		}
+		</script>
 		<script src="assets/js/jquery-3.2.1.min.js" type="text/javascript"></script>
 		<script src="assets/js/add.js" type="text/javascript"></script>
-		<script>if(window.module) module = window.module;</script>
+		<script type="text/javascript">
+		if(window.module) {
+			module = window.module;
+		}
+		</script>
 	</body>
 </html>

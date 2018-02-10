@@ -15,12 +15,12 @@ let authWindow;
  *	FUNCTIONS
  */
 function createWindow() {
-	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#fff", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
+	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#fff", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false, nodeIntegration: false}});
 	authWindow.setMenu(null);
-	authWindow.webContents.session.clearCache(function() {
+	authWindow.webContents.session.clearStorageData(function() {
 		storage.get("auth", function(error, data) {
 			if (error) throw error;
-			if(data.id && data.token && data.remember == "true") {
+			if(data.token) {
 				appWindow = new BrowserWindow({width: 800, height: 600, frame: false, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
 				appWindow.loadURL(url.format({
 					pathname: path.join(__dirname, "index.html"),
@@ -43,11 +43,11 @@ function createWindow() {
 					if (error) throw error;
 				});
 				request({
-					url: "https://api.theartex.net/user/?sec=token",
+					url: "https://api.theartex.net/",
 					method: "GET",
 					json: true
 				}, function (error, response, body) {
-					if(error || response.body.status != "success") {
+					if(error || response.body.method != "GET") {
 						if(error) {
 							console.log(error);
 						}
@@ -57,7 +57,8 @@ function createWindow() {
 							slashes: true
 						}));
 					} else {
-						authWindow.loadURL("https://www.theartex.net/system/login/?red=https://localhost:144/&minimal=true&token=" + response.body.data.token + "&id=" + response.body.data.id);
+						// Insert your application's client identifier here. Artex Development Dashboard requires write access for notification updates.
+						authWindow.loadURL("https://www.theartex.net/account/authorize/?client_id=" + CLIENT_IDENTIFIER + "&response_type=token&scope=write&redirect_uri=https://add.callback.localhost:144/");
 					}
 				});
 			}
@@ -68,9 +69,9 @@ function createWindow() {
 	 *	FUNCTION -> EVENTS
 	 */
 	authWindow.webContents.on("will-navigate", function(event, newUrl) {
-		if(newUrl.startsWith("https://localhost:144/") && newUrl.split("?")[1].split("&")[0].split("=")[1] && newUrl.split("?")[1].split("&")[1].split("=")[1] && newUrl.split("?")[1].split("&")[2].split("=")[1]) {
+		if(newUrl.startsWith("https://add.callback.localhost:144/") && newUrl.split("#")[1].split("=")[1]) {
 			event.preventDefault();
-			storage.set("auth", {id: newUrl.split("?")[1].split("&")[0].split("=")[1], token: newUrl.split("?")[1].split("&")[1].split("=")[1], remember: newUrl.split("?")[1].split("&")[2].split("=")[1]}, function(error) {
+			storage.set("auth", {token: newUrl.split("#")[1].split("=")[1]}, function(error) {
 				if (error) throw error;
 			});
 			appWindow = new BrowserWindow({width: 800, height: 600, frame: false, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
@@ -90,10 +91,14 @@ function createWindow() {
 			appWindow.on("closed", () => {
 				appWindow = null;
 			});
-		} else if(["https://www.theartex.net/system/registration/", "https://www.theartex.net/system/reset/"].indexOf(newUrl) >= 0) {
+		} else if(!newUrl.startsWith("https://www.theartex.net/account/login/") && !newUrl.startsWith("https://www.theartex.net/account/authorize/")) {
 			event.preventDefault();
 			shell.openExternal(newUrl);
 		}
+	});
+	authWindow.webContents.on("new-window", function(event, newUrl) {
+		event.preventDefault();
+		shell.openExternal(newUrl);
 	});
 	
 	/*
