@@ -45,6 +45,9 @@ function displayError() {
 function authOut() {
 	auth = false;
 	
+	storage.clear(function(error) {
+		if (error) throw error;
+	});
 	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false, nodeIntegration: false}});
 	authWindow.setMenu(null);
 	authWindow.webContents.session.clearStorageData(function() {
@@ -114,11 +117,10 @@ function authCheck() {
 					json: true,
 					body: {token: data.token}
 				}, function (error, response, body) {
-					if(error || response.body.status != "success") {
-						storage.clear(function(error) {
-							if (error) throw error;
-						});
+					if(error || response.body.method != "POST") {
 						displayError();
+					} else if(response.body.status == "error") {
+						authOut();
 					} else {
 						$.each(response.body.data, function(key, value) {
 							$("." + key).text(value);
@@ -132,8 +134,10 @@ function authCheck() {
 							json: true,
 							body: {token: data.token}
 						}, function (error, response, body) {
-							if(error || response.body.status != "success") {
+							if(error || response.body.method != "POST") {
 								displayError();
+							} else if(response.body.status == "error") {
+								authOut();
 							} else {
 								$.each(response.body.data, function(key, value) {
 									if(value.new == "true") {
@@ -156,9 +160,6 @@ function authCheck() {
 					}
 				});
 			} else {
-				storage.clear(function(error) {
-					if (error) throw error;
-				});
 				authOut();
 			}
 		});
@@ -173,7 +174,7 @@ function getAnnouncements(page = 1, limit = 10) {
 		json: true,
 		body: {page: page, limit: limit}
 	}, function (error, response, body) {
-		if(error || response.body.status != "success") {
+		if(error || response.body.method != "POST" || response.body.status == "error") {
 			displayError();
 		} else {
 			$("tbody").empty();
@@ -224,8 +225,10 @@ function getNotifications(page = 1, limit = 10) {
 			json: true,
 			body: {token: data.token, page: page, limit: limit}
 		}, function (error, response, body) {
-			if(error || response.body.status != "success") {
+			if(error || response.body.method != "POST") {
 				displayError();
+			} else if(response.body.status == "error") {
+				authOut();
 			} else {
 				$("tbody").empty();
 				if(response.body.data) {
