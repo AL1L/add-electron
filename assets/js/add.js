@@ -21,7 +21,7 @@ var auth = true;
 function displayError() {
 	auth = false;
 	
-	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#fff", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
+	authWindow = new BrowserWindow({width: 1008, height: 756, show: false, backgroundColor: "#fff", minWidth: 1008, minHeight: 756, webPreferences: {webSecurity: false}});
 	authWindow.setMenu(null);
 	authWindow.loadURL(url.format({
 		pathname: path.join(__dirname, "error.html"),
@@ -48,7 +48,7 @@ function authOut() {
 	storage.clear(function(error) {
 		if (error) throw error;
 	});
-	authWindow = new BrowserWindow({width: 800, height: 600, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false, nodeIntegration: false}});
+	authWindow = new BrowserWindow({width: 1008, height: 756, show: false, backgroundColor: "#1a1a1a", minWidth: 1008, minHeight: 756, webPreferences: {webSecurity: false, nodeIntegration: false}});
 	authWindow.setMenu(null);
 	authWindow.webContents.session.clearStorageData(function() {
 		request({
@@ -78,7 +78,7 @@ function authOut() {
 						storage.set("auth", {token: newUrl.split("#")[1].split("=")[1]}, function(error) {
 							if (error) throw error;
 						});
-						appWindow = new BrowserWindow({width: 800, height: 600, frame: false, show: false, backgroundColor: "#1a1a1a", minWidth: 800, minHeight: 600, webPreferences: {webSecurity: false}});
+						appWindow = new BrowserWindow({width: 1008, height: 756, frame: false, show: false, backgroundColor: "#1a1a1a", minWidth: 1008, minHeight: 756, webPreferences: {webSecurity: false}});
 						appWindow.loadURL(url.format({
 							pathname: path.join(__dirname, "index.html"),
 							protocol: "file:",
@@ -93,7 +93,7 @@ function authOut() {
 							authWindow.close();
 							app.remote.getCurrentWindow().close();
 						});
-					} else if(!newUrl.startsWith("https://www.theartex.net/account/login/") && !newUrl.startsWith("https://www.theartex.net/account/authorize/")) {
+					} else if(!["https://www.theartex.net/account/login/", "https://www.theartex.net/account/authorize/", "https://www.theartex.net/account/logout/"].includes(newUrl)) {
 						event.preventDefault();
 						shell.openExternal(newUrl);
 					}
