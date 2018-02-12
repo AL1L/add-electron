@@ -91,7 +91,7 @@ function createWindow() {
 			appWindow.on("closed", () => {
 				appWindow = null;
 			});
-		} else if(!["https://www.theartex.net/account/login/", "https://www.theartex.net/account/authorize/", "https://www.theartex.net/account/logout/"].includes(newUrl)) {
+		} else if(!newUrl.startsWith("https://www.theartex.net/account/login/") && !newUrl.startsWith("https://www.theartex.net/account/authorize/") && !newUrl.startsWith("https://www.theartex.net/account/logout/")) {
 			event.preventDefault();
 			shell.openExternal(newUrl);
 		}
