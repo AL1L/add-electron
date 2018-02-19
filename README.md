@@ -5,15 +5,20 @@ The developer API can be found at https://www.theartex.net/api/.
 
 ### Features
 - Custom application design
-- Online authentication
+- OAuth 2.0 authentication
 - Announcements
-- Desktop notifications
-- Alerts
+- Notifications
 
 ### Build Instructions
 Before anything, please make sure you have Node.js, NPM and Yarn installed globally.
 
-Once you have cloned the files to a local directory, make sure to include your application's identifier in the `main.js` and `add.js` files.
+Once you have cloned the files to a local directory, make sure to include your application's identifier in the `config.json` file.
+```json
+{
+	"client_id": "CLIENT_IDENTIFIER",
+	"client_secret": "CLIENT_SECRET"
+}
+```
 
 Run the following command to add electron-builder as a local dependency.
 ```
