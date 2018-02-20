@@ -4,12 +4,12 @@ const url = require("url");
 const storage = require("electron-json-storage");
 const request = require("request");
 const dateFormat = require("dateformat");
-const system = require("fs");
+const fs = require("fs");
 
 /*
  *	CONFIGURATION
  */
-let configuration = JSON.parse(system.readFileSync("./config.json", "utf-8"));
+let configuration = JSON.parse(fs.readFileSync("./config.json", "utf-8"));
 
 /*
  *	VARIABLES
