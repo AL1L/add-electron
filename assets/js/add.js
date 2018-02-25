@@ -178,6 +178,29 @@ function loadUser(data) {
 		}
 	});
 }
+function getAuthorization() {
+	storage.get("authorization", function(error, data) {
+		if(error) throw error;
+		if(data.code) {
+			request({
+				url: "https://api.theartex.net/v1/oauth/token/",
+				method: "POST",
+				body: {client_id: configuration.client_id, client_secret: configuration.client_secret, code: data.code, grant_type: "authorization_code"},
+				json: true
+			}, function (error, response, body) {
+				if(error) {
+					displayError();
+				} else if(response.body.data) {
+					loadUser(response.body.data);
+				} else {
+					authOut();
+				}
+			});
+		} else {
+			authOut();
+		}
+	});
+}
 function authCheck() {
 	if(!auth) return;
 	storage.get("authentication", function(error, data) {
@@ -195,31 +218,11 @@ function authCheck() {
 				} else if(response.body.data) {
 					loadUser(response.body.data);
 				} else {
-					authOut();
+					getAuthorization();
 				}
 			});
 		} else {
-			storage.get("authorization", function(error, data) {
-				if(error) throw error;
-				if(data.code) {
-					request({
-						url: "https://api.theartex.net/v1/oauth/token/",
-						method: "POST",
-						body: {client_id: configuration.client_id, client_secret: configuration.client_secret, code: data.code, grant_type: "authorization_code"},
-						json: true
-					}, function (error, response, body) {
-						if(error) {
-							displayError();
-						} else if(response.body.data) {
-							loadUser(response.body.data);
-						} else {
-							authOut();
-						}
-					});
-				} else {
-					authOut();
-				}
-			});
+			getAuthorization();
 		}
 	});
 }
